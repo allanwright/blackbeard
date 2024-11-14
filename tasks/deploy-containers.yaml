@@ -1,0 +1,39 @@
+- name: Transfer docker container files # noqa: risky-file-permissions
+  ansible.builtin.copy:
+    src: 'config/containers/{{ item.name }}'
+    dest: '/opt/docker'
+    mode: '{{ "0775" if item.name.endswith(".sh") else "0644" }}'
+    # owner: '{{ item.owner | default(omit) }}'
+    # group: '{{ item.group | default(omit) }}'
+    force: true
+  become: true
+  loop: '{{ software.containers }}'
+
+- name: Find shell scripts
+  ansible.builtin.find:
+    paths: /opt/docker
+    patterns: '*.sh'
+    recurse: true
+  register: shell_scripts
+
+- name: Make shell scripts executable
+  ansible.builtin.file:
+    path: '{{ item.path }}'
+    mode: 'a+x'
+  become: true
+  loop: '{{ shell_scripts.files }}'
+
+- name: Run docker compose down
+  community.docker.docker_compose_v2:
+    project_src: /opt/docker/{{ item.name }}
+    state: absent
+  become: true
+  loop: '{{ software.containers }}'
+
+- name: Run docker compose up
+  community.docker.docker_compose_v2:
+    project_src: /opt/docker/{{ item.name }}
+    pull: always
+    state: present
+  become: true
+  loop: '{{ software.containers }}'

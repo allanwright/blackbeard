@@ -1,0 +1,31 @@
+- name: Configure Server
+  hosts: all
+  vars_files:
+    - config/ansible_vars.yaml
+  tasks:
+    - name: Install docker
+      ansible.builtin.include_tasks: tasks/install-docker.yaml
+
+    - name: Install packages
+      ansible.builtin.include_tasks: tasks/install-packages.yaml
+
+    - name: Configure storage
+      ansible.builtin.include_tasks: tasks/configure-storage.yaml
+
+    - name: Configure IAM
+      ansible.builtin.include_tasks: tasks/configure-iam.yaml
+
+    - name: Configure Shares
+      ansible.builtin.include_tasks: tasks/configure-shares.yaml
+
+    # TODO: Move configuration into config/ansible_vars.yaml
+    - name: Set power schedule
+      ansible.builtin.include_tasks: tasks/set-power-schedule.yaml
+      vars:
+        power_on: '17:00'
+        power_off: '22:00'
+        mode: 'off'
+        user: '{{ ansible_settings.ansible_user }}'
+
+    - name: Create containers
+      ansible.builtin.include_tasks: tasks/deploy-containers.yaml

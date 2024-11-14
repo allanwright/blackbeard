@@ -1,0 +1,18 @@
+- name: Update repositories
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Install required packages
+  ansible.builtin.apt:
+    pkg: '{{ item }}'
+    state: '{{ ansible_settings.package_state }}'
+  become: true
+  loop: '{{ software.packages }}'
+
+- name: Add to PATH
+  ansible.builtin.lineinfile:
+    path: /etc/profile
+    line: 'export PATH=$PATH:/usr/sbin'
+    state: present
+  become: true

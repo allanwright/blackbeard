@@ -1,0 +1,47 @@
+- name: Update repositories
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Install required packages
+  ansible.builtin.apt:
+    pkg:
+      - samba
+  become: true
+
+- name: Create user groups for shares
+  ansible.builtin.group:
+    name: '{{ item.name }}'
+    state: present
+  become: true
+  loop: '{{ shares }}'
+
+- name: Create shared directories
+  ansible.builtin.file:
+    path: '/mnt/storage/{{ item.name }}'
+    state: directory
+    mode: '{{ item.mode }}'
+    owner: 'root'
+    group: '{{ item.name }}'
+  loop: '{{ shares }}'
+  become: true
+
+- name: Create samba shares
+  ansible.builtin.template:
+    src: 'config/templates/smb.conf.j2'
+    dest: '/etc/samba/smb.conf'
+  become: true
+
+- name: Restart Samba
+  ansible.builtin.service:
+    name: smbd
+    state: restarted
+  become: true
+
+# - name: Set permissions for each share
+#   file:
+#     path: "/mnt/storage/{{ item.name }}"
+#     mode: "{{ item.permissions[0].mode | default('0750') }}"
+#     owner: "{{ item.permissions[0].name | default('root') }}"
+#     group: "{{ item.permissions[0].group | default('root') }}"
+#   loop: "{{ shares }}"

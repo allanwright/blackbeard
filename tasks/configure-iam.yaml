@@ -1,0 +1,17 @@
+- name: Create user groups
+  ansible.builtin.group:
+    gid: '{{ item.id | default(omit) }}'
+    name: '{{ item.name }}'
+    state: present
+  become: true
+  loop: '{{ iam.groups }}'
+
+- name: Create users
+  ansible.builtin.user:
+    uid: '{{ item.id | default(omit) }}'
+    name: '{{ item.name }}'
+    groups: '{{ item.groups }}'
+    append: true
+    state: present
+  become: true
+  loop: '{{ iam.users }}'

@@ -1,0 +1,53 @@
+- name: Update repositories
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Install required packages
+  ansible.builtin.apt:
+    pkg:
+      - ca-certificates
+      - curl
+  become: true
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Check if docker gpg key exists
+  ansible.builtin.stat:
+    path: /etc/apt/keyrings/docker.asc
+  register: docker_gpg_key
+
+- name: Install docker gpg key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0444'
+  when: not docker_gpg_key.stat.exists
+  become: true
+
+- name: Add docker apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+    filename: docker
+  become: true
+
+- name: Update repositories again
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+
+- name: Install docker packages
+  ansible.builtin.apt:
+    pkg:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+  become: true

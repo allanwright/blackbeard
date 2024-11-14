@@ -1,0 +1,68 @@
+- name: Install storage packages
+  ansible.builtin.include_tasks: install-packages.yaml
+  vars:
+    packages:
+      - fuse
+      - mergerfs
+      - parted
+      - samba
+      - snapraid
+    package_state: present
+
+- name: Get data disk device names from disk ids # noqa: command-instead-of-shell no-changed-when
+  ansible.builtin.shell: "lsblk -d -n -o NAME /dev/disk/by-id/{{ item.disk_id }}"
+  register: data_disk_device_names_output
+  loop: '{{ hardware.disks.data }}'
+
+- name: Create list of data disk device names
+  ansible.builtin.set_fact:
+    data_disk_device_names: '{{ data_disk_device_names_output.results | map(attribute="stdout") | list }}'
+
+- name: Get parity disk device names from disk ids # noqa: command-instead-of-shell no-changed-when
+  ansible.builtin.shell: "lsblk -d -n -o NAME /dev/disk/by-id/{{ item.disk_id }}"
+  register: parity_disk_device_names_output
+  loop: '{{ hardware.disks.parity }}'
+
+- name: Create list of parity disk device names
+  ansible.builtin.set_fact:
+    parity_disk_device_names: '{{ parity_disk_device_names_output.results | map(attribute="stdout") | list }}'
+
+- name: Partition disks
+  community.general.parted:
+    device: '/dev/{{ item }}'
+    number: 1
+    part_type: primary
+    fs_type: ext4
+    state: present
+  become: true
+  loop: '{{ data_disk_device_names + parity_disk_device_names }}'
+
+- name: Create filesystems
+  community.general.filesystem:
+    fstype: ext4
+    dev: '/dev/{{ item }}1'
+    state: present
+  become: true
+  loop: '{{ data_disk_device_names + parity_disk_device_names }}'
+
+- name: Set mount points
+  ansible.posix.mount:
+    path: '{{ item.mount_point }}'
+    src: '/dev/disk/by-id/{{ item.disk_id }}-part1'
+    fstype: ext4
+    state: mounted
+  become: true
+  loop: '{{ hardware.disks.data + hardware.disks.parity }}'
+
+- name: Create mergerfs mount point directory # noqa: risky-file-permissions
+  ansible.builtin.file:
+    path: /mnt/storage
+    state: directory
+  become: true
+
+- name: Configure mergerfs
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: '/mnt/disk*     /mnt/storage     fuse.mergerfs direct_io,defaults,allow_other,minfreespace=50G,fsname=mergerfs 0 0'
+    state: present
+  become: true
