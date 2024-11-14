@@ -1,0 +1,40 @@
+ansible_settings:
+  ansible_user: ansible
+  package_state: present
+
+hardware:
+  disks:
+    data:
+      - disk_id: ata-Samsung_SSD_999_EVO_16TB_S750NX000000001
+        mount_point: /mnt/disk1
+      - disk_id: ata-Samsung_SSD_999_EVO_16TB_S750NX000000002
+        mount_point: /mnt/disk2
+      - disk_id: ata-Samsung_SSD_999_EVO_16TB_S750NX000000003
+        mount_point: /mnt/disk3
+    parity:
+      - disk_id: ata-Samsung_SSD_999_EVO_16TB_S750NX000000004
+        mount_point: /mnt/parity1
+
+shares:
+  - name: linux-distros
+    mode: '0775'
+
+iam:
+  groups:
+    - id: 1337
+      name: distrostack
+  users:
+    - id: 1337
+      name: distrostack
+      groups: 'linux-distros'
+
+software:
+  packages:
+    - glances
+    - powertop
+  containers:
+    - name: certbot
+    - name: nginx
+    - name: distrostack # Awesome stack for automating linux distro downloads
+      owner: '1337'
+      group: '1337'

@@ -1,0 +1,46 @@
+networks:
+  distro_network:
+    driver: ipvlan
+    driver_opts:
+      ipvlan_mode: l2
+      parent: enp2s0.10
+      vlan_id: 10
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
+          gateway: 192.168.10.1
+
+services:
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - VPN_ENABLED=true
+      - VPN_INTERFACE=tun0
+    volumes:
+      - /opt/docker/distrostack/qbittorrent/config:/config
+      - /opt/docker/distrostack/qbittorrent/downloads:/downloads
+    ports:
+      - "8080:8080"
+      - "6881:6881"
+    networks:
+      distro_network:
+        ipv4_address: 192.168.10.10
+
+  sonarr:
+    image: linuxserver/distrarr
+    container_name: distrarr
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - /opt/docker/distrostack/distrarr/config:/config
+      - /opt/docker/distrostack/qbittorrent/downloads:/downloads
+      - /mnt/storage/distros:/distros
+    ports:
+      - "8989:8989"
+    networks:
+      arr_network:
+        ipv4_address: 192.168.45.11

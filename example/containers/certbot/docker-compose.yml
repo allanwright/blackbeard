@@ -1,0 +1,13 @@
+version: "3.3"
+services:
+  certbot:
+    image: certbot/dns-route53:latest
+    container_name: certbot
+    restart: unless-stopped
+    command: certonly -d *.mydomain.link -m me@mydomain.link --agree-tos --server https://acme-v02.api.letsencrypt.org/directory
+    volumes:
+      - /opt/docker/certbot/config:/etc/letsencrypt
+      - /opt/docker/certbot/config:/var/lib/letsencrypt
+    environment:
+      PUID: $PUID
+      PGID: $PGID
