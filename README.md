@@ -38,9 +38,10 @@ I totally don't have any of the following software installed because I always pa
 * [Jellyfin](https://jellyfin.org/)
 * [Jellyseerr](https://github.com/Fallenbagel/jellyseerr)
 
-## In Progress
+## Planned Work
 The following items are still yet to be completed.
 
 * Configure snapraid runner.
 * Add support for automated offsite backups.
+* Expose more configuration options as variables.
 * Document all of the configuration options and how to execute the Ansible playbook.
