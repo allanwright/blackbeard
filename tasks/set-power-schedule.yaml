@@ -1,7 +1,7 @@
 - name: Convert power on/off times to seconds
   ansible.builtin.set_fact:
-    power_on_seconds: '{{ (power_on.split(":")[0] | int * 3600) + (power_on.split(":")[1] | int * 60) }}'
-    power_off_seconds: '{{ (power_off.split(":")[0] | int * 3600) + (power_off.split(":")[1] | int * 60) }}'
+    power_on_seconds: '{{ (hardware.power.startup_time.split(":")[0] | int * 3600) + (hardware.power.startup_time.split(":")[1] | int * 60) }}'
+    power_off_seconds: '{{ (hardware.power.shutdown_time.split(":")[0] | int * 3600) + (hardware.power.shutdown_time.split(":")[1] | int * 60) }}'
 
 - name: Calculate power on/off time
   ansible.builtin.set_fact:
@@ -16,9 +16,9 @@
 - name: Set power schedule
   ansible.builtin.cron:
     name: rtcwake
-    user: '{{ user }}'
-    hour: '{{ power_off.split(":")[0] | int }}'
-    minute: '{{ power_off.split(":")[1] | int }}'
+    user: '{{ ansible_settings.ansible_user }}'
+    hour: '{{ hardware.power.shutdown_time.split(":")[0] | int }}'
+    minute: '{{ hardware.power.shutdown_time.split(":")[1] | int }}'
     # The user that this cron job is assigned to needs passwordless sudo for /usr/sbin/rtcwake
     # The job also needs to run with sudo because rtcwake relies on the motherboard's real time clock (RTC)
     # The default is /dev/rtc0 and /dev components are enumerated at each boot so permission changes won't persist beyond a reboot

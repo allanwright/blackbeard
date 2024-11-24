@@ -1,0 +1,17 @@
+- name: Create systemd services
+  ansible.builtin.template:
+    src: 'config/services/{{ item }}.service'
+    dest: '/etc/systemd/system/{{ item }}.service'
+    mode: '0644'
+  loop: '{{ software.services }}'
+  become: true
+
+- name: Enable and start services
+  ansible.builtin.systemd:
+    name: '{{ item }}'
+    state: started
+    enabled: true
+    daemon_reload: true
+    no_block: true
+  loop: '{{ software.services }}'
+  become: true

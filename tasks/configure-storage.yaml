@@ -66,3 +66,10 @@
     line: '/mnt/disk*     /mnt/storage     fuse.mergerfs direct_io,defaults,allow_other,minfreespace=50G,fsname=mergerfs 0 0'
     state: present
   become: true
+
+- name: Create snapraid configuration
+  ansible.builtin.template:
+    src: 'config/templates/snapraid.conf.j2'
+    dest: '/etc/snapraid.conf'
+    mode: '0640'
+  become: true

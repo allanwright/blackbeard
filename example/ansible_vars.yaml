@@ -2,6 +2,16 @@ ansible_settings:
   ansible_user: ansible
   package_state: present
 
+task_switches:
+  install_docker: true
+  install_packages: true
+  configure_storage: true
+  configure_iam: true
+  configure_shares: true
+  set_power_schedule: true
+  deploy_containers: true
+  install_services: true
+
 hardware:
   disks:
     data:
@@ -16,14 +26,20 @@ hardware:
         mount_point: /mnt/parity1
 
 shares:
+  - name: documents
+    mode: '0660'
+  - name: photos
+    mode: '0660'
   - name: linux-distros
-    mode: '0775'
+    mode: '0664'
 
 iam:
   groups:
     - id: 1337
       name: distrostack
   users:
+    - name: allan
+      groups: 'documents,photos,linux-distros'
     - id: 1337
       name: distrostack
       groups: 'linux-distros'
@@ -36,5 +52,5 @@ software:
     - name: certbot
     - name: nginx
     - name: distrostack # Awesome stack for automating linux distro downloads
-      owner: '1337'
-      group: '1337'
+  services:
+    - powertop
