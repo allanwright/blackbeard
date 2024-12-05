@@ -9,6 +9,13 @@
       - snapraid
     package_state: present
 
+- name: Install snapraid runner
+  ansible.builtin.git:
+    repo: https://github.com/Chronial/snapraid-runner.git
+    dest: /opt/snapraid-runner
+    version: master
+  become: true
+
 - name: Get data disk device names from disk ids # noqa: command-instead-of-shell no-changed-when
   ansible.builtin.shell: "lsblk -d -n -o NAME /dev/disk/by-id/{{ item.disk_id }}"
   register: data_disk_device_names_output
@@ -72,4 +79,24 @@
     src: 'config/templates/snapraid.conf.j2'
     dest: '/etc/snapraid.conf'
     mode: '0640'
+  become: true
+
+- name: Create snapraid runner configuration
+  ansible.builtin.template:
+    src: 'config/templates/snapraid-runner.conf.j2'
+    dest: '/opt/snapraid-runner/snapraid-runner.conf'
+    mode: '0640'
+  become: true
+
+- name: Set snapraid runner schedule
+  ansible.builtin.cron:
+    name: snapraid-runner
+    user: '{{ ansible_settings.ansible_user }}'
+    hour: '{{ software.scheduled_tasks.snapraid_runner_time.split(":")[0] | int }}'
+    minute: '{{ software.scheduled_tasks.snapraid_runner_time.split(":")[1] | int }}'
+    job: >
+      sudo python3 /opt/snapraid-runner/snapraid-runner.py
+      -c /opt/snapraid-runner/snapraid-runner.conf
+      && curl -fsS --retry 3 https://hc-ping.com/2219d8b3-908f-4f86-ac34-a9c80a06b72e
+      > /dev/null
   become: true

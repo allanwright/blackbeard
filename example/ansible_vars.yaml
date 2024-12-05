@@ -2,6 +2,17 @@ ansible_settings:
   ansible_user: ansible
   package_state: present
 
+email_alerts:
+  from_address: ''
+  to_address: ''
+  smtp_server:
+    host: ''
+    port: 587
+    ssl: false
+    tls: true
+    username: ''
+    password: ''
+
 task_switches:
   install_docker: true
   install_packages: true
@@ -48,9 +59,15 @@ software:
   packages:
     - glances
     - powertop
+
   containers:
     - name: certbot
     - name: nginx
     - name: distrostack # Awesome stack for automating linux distro downloads
+
   services:
     - powertop
+
+  scheduled_tasks:
+    backup_time: '02:00'
+    snapraid_runner_time: '04:00'
