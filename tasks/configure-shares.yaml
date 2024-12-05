@@ -9,21 +9,21 @@
       - samba
   become: true
 
-- name: Create user groups for shares
+- name: Create user groups for folders and shares
   ansible.builtin.group:
     name: '{{ item.name }}'
     state: present
   become: true
-  loop: '{{ shares }}'
+  loop: '{{ folders + shares }}'
 
-- name: Create shared directories
+- name: Create folders and shares
   ansible.builtin.file:
     path: '/mnt/storage/{{ item.name }}'
     state: directory
     mode: '{{ item.mode }}'
     owner: 'root'
     group: '{{ item.name }}'
-  loop: '{{ shares }}'
+  loop: '{{ folders + shares }}'
   become: true
 
 - name: Create samba shares
@@ -38,11 +38,3 @@
     name: smbd
     state: restarted
   become: true
-
-# - name: Set permissions for each share
-#   file:
-#     path: "/mnt/storage/{{ item.name }}"
-#     mode: "{{ item.permissions[0].mode | default('0750') }}"
-#     owner: "{{ item.permissions[0].name | default('root') }}"
-#     group: "{{ item.permissions[0].group | default('root') }}"
-#   loop: "{{ shares }}"
