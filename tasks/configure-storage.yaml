@@ -70,7 +70,19 @@
 - name: Configure mergerfs
   ansible.builtin.lineinfile:
     path: /etc/fstab
-    line: '/mnt/disk*     /mnt/storage     fuse.mergerfs direct_io,defaults,allow_other,minfreespace=50G,fsname=mergerfs 0 0'
+    line: >
+      /mnt/disk*
+      /mnt/storage
+      fuse.mergerfs defaults,
+      nonempty,
+      allow_other,
+      use_ino,
+      cache.files=off,
+      moveonenospc=true,
+      category.create=mfs,
+      dropcacheonclose=true,
+      minfreespace=50G,
+      fsname=mergerfs 0 0
     state: present
   become: true
 
@@ -94,9 +106,18 @@
     user: '{{ ansible_settings.ansible_user }}'
     hour: '{{ software.scheduled_tasks.snapraid_runner_time.split(":")[0] | int }}'
     minute: '{{ software.scheduled_tasks.snapraid_runner_time.split(":")[1] | int }}'
+    # TODO: Add support for stopping and starting containers to the ansible_vars file
     job: >
-      sudo python3 /opt/snapraid-runner/snapraid-runner.py
+      cd /opt/docker/arrstack
+      && sudo docker compose stop
+      && cd /opt/docker/immichstack
+      && sudo docker compose stop
+      && sudo python3 /opt/snapraid-runner/snapraid-runner.py
       -c /opt/snapraid-runner/snapraid-runner.conf
       && curl -fsS --retry 3 https://hc-ping.com/2219d8b3-908f-4f86-ac34-a9c80a06b72e
       > /dev/null
+      && cd /opt/docker/arrstack
+      && sudo docker compose start
+      && cd /opt/docker/immichstack
+      && sudo docker compose start
   become: true

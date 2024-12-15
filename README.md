@@ -8,12 +8,12 @@ The purpose of this repository is to provide automation of the configuration of 
 |----------|----------|
 | CPU | Intel Core i3 12100 |
 | Motherboard | CWWK Q670 |
-| RAM | Coming soon |
+| RAM | 2 x 8GB Crucial 4800Mhz DDR5 UDIMM |
 | Power Supply | HDPLEX 250w |
 | Case | Athena Power RM-1UC138 1U rackmount chassis |
 | Drive Bays | Icy Dock ToughArmor MB699VP-B |
-| SSD (OS) | Coming soon |
-| Storage Drives | Coming soon |
+| OS Disk | Crucial P3 Plus 500GB PCIE M.2 2280 |
+| Storage Disks | Coming soon |
 
 ### Software
 * [Debian (headless)](https://www.debian.org/)
@@ -41,7 +41,7 @@ I totally don't have any of the following software installed because I always pa
 ## Planned Work
 The following items are still yet to be completed.
 
-* Configure snapraid runner.
+* Add configuration to support snapraid runner suspending selected containers/stacks while snapraid sync is run.
 * Add support for automated offsite backups.
-* Expose more configuration options as variables.
-* Document all of the configuration options and how to execute the Ansible playbook.
+* Prevent or delay rtcwake shutdown if other cron jobs are running.
+* Add sendgrid support for system alerts.

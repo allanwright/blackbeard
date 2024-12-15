@@ -21,8 +21,8 @@
     path: '/mnt/storage/{{ item.name }}'
     state: directory
     mode: '{{ item.mode }}'
-    owner: 'root'
-    group: '{{ item.name }}'
+    owner: '{{ item.owner | default("root") }}'
+    group: '{{ item.owner | default(item.name) }}'
   loop: '{{ folders + shares }}'
   become: true
 
