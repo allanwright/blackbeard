@@ -92,32 +92,3 @@
     dest: '/etc/snapraid.conf'
     mode: '0640'
   become: true
-
-- name: Create snapraid runner configuration
-  ansible.builtin.template:
-    src: 'config/templates/snapraid-runner.conf.j2'
-    dest: '/opt/snapraid-runner/snapraid-runner.conf'
-    mode: '0640'
-  become: true
-
-- name: Set snapraid runner schedule
-  ansible.builtin.cron:
-    name: snapraid-runner
-    user: '{{ ansible_settings.ansible_user }}'
-    hour: '{{ software.scheduled_tasks.snapraid_runner_time.split(":")[0] | int }}'
-    minute: '{{ software.scheduled_tasks.snapraid_runner_time.split(":")[1] | int }}'
-    # TODO: Add support for stopping and starting containers to the ansible_vars file
-    job: >
-      cd /opt/docker/arrstack
-      && sudo docker compose stop
-      && cd /opt/docker/immichstack
-      && sudo docker compose stop
-      && sudo python3 /opt/snapraid-runner/snapraid-runner.py
-      -c /opt/snapraid-runner/snapraid-runner.conf
-      && curl -fsS --retry 3 https://hc-ping.com/2219d8b3-908f-4f86-ac34-a9c80a06b72e
-      > /dev/null
-      && cd /opt/docker/arrstack
-      && sudo docker compose start
-      && cd /opt/docker/immichstack
-      && sudo docker compose start
-  become: true

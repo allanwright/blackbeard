@@ -34,3 +34,7 @@
     - name: Install services
       ansible.builtin.include_tasks: tasks/install-services.yaml
       when: task_switches.install_services
+
+    - name: Configure maintenance
+      ansible.builtin.include_tasks: tasks/configure-maintenance.yaml
+      when: task_switches.configure_maintenance

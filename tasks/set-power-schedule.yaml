@@ -1,7 +1,7 @@
 - name: Convert power on/off times to seconds
   ansible.builtin.set_fact:
-    power_on_seconds: '{{ (hardware.power.startup_time.split(":")[0] | int * 3600) + (hardware.power.startup_time.split(":")[1] | int * 60) }}'
-    power_off_seconds: '{{ (hardware.power.shutdown_time.split(":")[0] | int * 3600) + (hardware.power.shutdown_time.split(":")[1] | int * 60) }}'
+    power_on_seconds: '{{ (power.startup_time.split(":")[0] | int * 3600) + (power.startup_time.split(":")[1] | int * 60) }}'
+    power_off_seconds: '{{ (power.shutdown_time.split(":")[0] | int * 3600) + (power.shutdown_time.split(":")[1] | int * 60) }}'
 
 - name: Calculate power on/off time
   ansible.builtin.set_fact:
@@ -12,6 +12,13 @@
   ansible.builtin.set_fact:
     sleep_seconds: '{{ power_on_seconds | int - power_off_seconds | int }}'
   when: (power_on_seconds | int > power_off_seconds | int)
+
+- name: Add to PATH
+  ansible.builtin.lineinfile:
+    path: /etc/profile
+    line: 'export PATH=$PATH:/usr/sbin'
+    state: present
+  become: true
 
 - name: Set power schedule
   ansible.builtin.cron:
@@ -24,3 +31,4 @@
     # The default is /dev/rtc0 and /dev components are enumerated at each boot so permission changes won't persist beyond a reboot
     job: 'sudo rtcwake --mode off --seconds {{ sleep_seconds }}'
   become: true
+  when: power.schedule_enabled and maintenance.start_time != 'before_shutdown'
