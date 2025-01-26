@@ -36,12 +36,4 @@ I totally don't have any of the following software installed because I always pa
 * [Radarr](https://radarr.video/)
 * [Sonarr](https://sonarr.tv/)
 * [Jellyfin](https://jellyfin.org/)
-* [Jellyseerr](https://github.com/Fallenbagel/jellyseerr)
-
-## Planned Work
-The following items are still yet to be completed.
-
-* Add configuration to support snapraid runner suspending selected containers/stacks while snapraid sync is run.
-* Add support for automated offsite backups.
-* Prevent or delay rtcwake shutdown if other cron jobs are running.
-* Add sendgrid support for system alerts.
+* [Jellyseerr](https://github.com/Fallenbagel/jellyseerr
