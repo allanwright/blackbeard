@@ -34,14 +34,16 @@
   ansible.builtin.template:
     src: 'config/templates/maintenance.sh.j2'
     dest: '/opt/scripts/maintenance.sh'
-    mode: '0640'
+    mode: '0750'
+    owner: 'root'
+    group: 'root'
   become: true
 
 - name: Create maintenance job
   ansible.builtin.cron:
     name: system-maintenance
-    user: '{{ ansible_settings.ansible_user }}'
+    user: 'root'
     hour: '{{ (maintenance.start_time == "before_shutdown") | ternary(power.shutdown_time.split(":")[0] | int, maintenance.start_time.split(":")[0] | int) }}'
     minute: '{{ (maintenance.start_time == "before_shutdown") | ternary(power.shutdown_time.split(":")[1] | int, maintenance.start_time.split(":")[1] | default(0) | int) }}' # noqa: yaml[line-length]
-    job: '/opt/scripts/maintenance.sh'
+    job: '/opt/scripts/maintenance.sh > /opt/scripts/maintenance.log 2>&1 | ts'
   become: true

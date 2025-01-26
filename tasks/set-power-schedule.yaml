@@ -1,17 +1,14 @@
-- name: Convert power on/off times to seconds
-  ansible.builtin.set_fact:
-    power_on_seconds: '{{ (power.startup_time.split(":")[0] | int * 3600) + (power.startup_time.split(":")[1] | int * 60) }}'
-    power_off_seconds: '{{ (power.shutdown_time.split(":")[0] | int * 3600) + (power.shutdown_time.split(":")[1] | int * 60) }}'
+- name: Calculate sleep seconds
+  ansible.builtin.script:
+    cmd: 'scripts/power_schedule.py "{{ power.startup_time }}" "{{ power.shutdown_time }}"'
+  delegate_to: '127.0.0.1'
+  register: sleep_seconds_output
+  when: (power.schedule_enabled and maintenance.start_time != 'before_shutdown')
 
-- name: Calculate power on/off time
+- name: Set sleep seconds fact
   ansible.builtin.set_fact:
-    sleep_seconds: '{{ (24 * 3600) - (power_off_seconds | int - power_on_seconds | int) }}'
-  when: (power_on_seconds | int < power_off_seconds | int)
-
-- name: Calculate power on/off time (past midnight)
-  ansible.builtin.set_fact:
-    sleep_seconds: '{{ power_on_seconds | int - power_off_seconds | int }}'
-  when: (power_on_seconds | int > power_off_seconds | int)
+    sleep_seconds: '{{ sleep_seconds_output.stdout }}'
+  when: (power.schedule_enabled and maintenance.start_time != 'before_shutdown')
 
 - name: Add to PATH
   ansible.builtin.lineinfile:
@@ -24,11 +21,11 @@
   ansible.builtin.cron:
     name: rtcwake
     user: '{{ ansible_settings.ansible_user }}'
-    hour: '{{ hardware.power.shutdown_time.split(":")[0] | int }}'
-    minute: '{{ hardware.power.shutdown_time.split(":")[1] | int }}'
+    hour: '{{ power.shutdown_time.split(":")[0] | int }}'
+    minute: '{{ power.shutdown_time.split(":")[1] | int }}'
     # The user that this cron job is assigned to needs passwordless sudo for /usr/sbin/rtcwake
     # The job also needs to run with sudo because rtcwake relies on the motherboard's real time clock (RTC)
     # The default is /dev/rtc0 and /dev components are enumerated at each boot so permission changes won't persist beyond a reboot
-    job: 'sudo rtcwake --mode off --seconds {{ sleep_seconds }}'
+    job: 'sudo rtcwake --mode off --seconds {{ sleep_seconds | default(0) }}'
+    state: '{{ "present" if (power.schedule_enabled and maintenance.start_time != "before_shutdown") else "absent" }}' # TODO: Test to make sure this is working
   become: true
-  when: power.schedule_enabled and maintenance.start_time != 'before_shutdown'

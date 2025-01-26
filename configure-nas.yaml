@@ -3,6 +3,15 @@
   vars_files:
     - config/ansible_vars.yaml
   tasks:
+    - name: Copy scripts
+      ansible.builtin.copy:
+        src: 'scripts/'
+        dest: '/opt/scripts'
+        mode: '0770'
+        owner: 'root'
+        group: 'root'
+      become: true
+
     - name: Install docker
       ansible.builtin.include_tasks: tasks/install-docker.yaml
       when: task_switches.install_docker
