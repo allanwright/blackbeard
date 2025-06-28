@@ -21,6 +21,7 @@ task_switches:
   configure_shares: true
   set_power_schedule: true
   deploy_containers: true
+  upgrade_containers: false
   install_services: true
 
 hardware:

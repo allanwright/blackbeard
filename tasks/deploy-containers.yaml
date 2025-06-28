@@ -26,10 +26,28 @@
   become: true
   loop: '{{ discovered_containers }}'
 
-- name: Run docker compose up
+- name: Run docker compose up (normal mode)
   community.docker.docker_compose_v2:
     project_src: /opt/docker/{{ item }}
     pull: missing
     state: present
   become: true
   loop: '{{ discovered_containers }}'
+  when: not task_switches.upgrade_containers
+
+- name: Run docker compose up (upgrade mode - pull latest images)
+  community.docker.docker_compose_v2:
+    project_src: /opt/docker/{{ item }}
+    pull: always
+    state: present
+  become: true
+  loop: '{{ discovered_containers }}'
+  when: task_switches.upgrade_containers
+
+- name: Clean up dangling Docker images
+  community.docker.docker_prune:
+    images: true
+    images_filters:
+      dangling: true
+  become: true
+  when: task_switches.upgrade_containers
