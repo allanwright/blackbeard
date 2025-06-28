@@ -1,23 +1,35 @@
+- name: Find docker-compose files
+  ansible.builtin.find:
+    paths: config/containers
+    patterns: 'docker-compose.yml'
+    recurse: true
+  delegate_to: localhost
+  register: docker_compose_files
+
+- name: Create list of container directories
+  ansible.builtin.set_fact:
+    discovered_containers: "{{ docker_compose_files.files | map(attribute='path') | map('dirname') | map('basename') | list }}"
+
 - name: Transfer docker container files # noqa: risky-file-permissions
   ansible.builtin.copy:
-    src: 'config/containers/{{ item.name }}'
+    src: 'config/containers/{{ item }}'
     dest: '/opt/docker'
     mode: '0775'
     force: true
   become: true
-  loop: '{{ software.containers }}'
+  loop: '{{ discovered_containers }}'
 
 - name: Run docker compose down
   community.docker.docker_compose_v2:
-    project_src: /opt/docker/{{ item.name }}
+    project_src: /opt/docker/{{ item }}
     state: absent
   become: true
-  loop: '{{ software.containers }}'
+  loop: '{{ discovered_containers }}'
 
 - name: Run docker compose up
   community.docker.docker_compose_v2:
-    project_src: /opt/docker/{{ item.name }}
+    project_src: /opt/docker/{{ item }}
     pull: missing
     state: present
   become: true
-  loop: '{{ software.containers }}'
+  loop: '{{ discovered_containers }}'

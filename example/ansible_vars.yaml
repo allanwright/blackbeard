@@ -60,10 +60,6 @@ software:
     - glances
     - powertop
 
-  containers:
-    - name: certbot
-    - name: nginx
-    - name: distrostack # Awesome stack for automating linux distro downloads
 
   services:
     - powertop
