@@ -5,22 +5,6 @@
     mode: '0640'
   become: true
 
-- name: Create rclone directory
-  ansible.builtin.file:
-    path: '/opt/rclone'
-    state: directory
-    mode: '0640'
-    owner: 'root'
-    group: 'root'
-  become: true
-
-- name: Create rclone configuration
-  ansible.builtin.template:
-    src: 'config/templates/rclone.conf.j2'
-    dest: '/opt/rclone/rclone.conf'
-    mode: '0640'
-  become: true
-
 - name: Create scripts directory
   ansible.builtin.file:
     path: '/opt/scripts'
@@ -45,5 +29,20 @@
     user: 'root'
     hour: '{{ (maintenance.start_time == "before_shutdown") | ternary(power.shutdown_time.split(":")[0] | int, maintenance.start_time.split(":")[0] | int) }}'
     minute: '{{ (maintenance.start_time == "before_shutdown") | ternary(power.shutdown_time.split(":")[1] | int, maintenance.start_time.split(":")[1] | default(0) | int) }}' # noqa: yaml[line-length]
+    env: true
     job: '/opt/scripts/maintenance.sh > /opt/scripts/maintenance.log 2>&1 | ts'
+  become: true
+
+- name: Set AWS access key id environment variable
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^AWS_ACCESS_KEY_ID='
+    line: 'AWS_ACCESS_KEY_ID={{ software.backup.aws_access_key_id }}'
+  become: true
+
+- name: Set AWS secret access key environment variable
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    regexp: '^AWS_SECRET_ACCESS_KEY='
+    line: 'AWS_SECRET_ACCESS_KEY={{ software.backup.aws_secret_access_key }}'
   become: true
