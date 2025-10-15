@@ -1,5 +1,6 @@
 - name: Configure Server
   hosts: all
+  remote_user: "{{ ansible_settings.ansible_user }}"
   vars_files:
     - config/ansible_vars.yaml
   tasks:
