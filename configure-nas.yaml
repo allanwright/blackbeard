@@ -3,6 +3,8 @@
   remote_user: "{{ ansible_settings.ansible_user }}"
   vars_files:
     - config/ansible_vars.yaml
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   tasks:
     - name: Copy scripts
       ansible.builtin.copy:
