@@ -1,0 +1,67 @@
+- name: Update repositories
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Install required packages
+  ansible.builtin.apt:
+    pkg:
+      - ca-certificates
+      - curl
+  become: true
+
+- name: Create keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Check if tailscale gpg key exists
+  ansible.builtin.stat:
+    path: /etc/apt/keyrings/tailscale.asc
+  register: tailscale_gpg_key
+
+- name: Install tailscale gpg key
+  ansible.builtin.get_url:
+    url: https://pkgs.tailscale.com/stable/debian/{{ ansible_facts['distribution_release'] }}.asc
+    dest: /etc/apt/keyrings/tailscale.asc
+    mode: '0444'
+  when: not tailscale_gpg_key.stat.exists
+  become: true
+
+- name: Remove legacy tailscale.list repository file
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/tailscale.list
+    state: absent
+  become: true
+
+- name: Add tailscale apt repository
+  ansible.builtin.deb822_repository:
+    name: tailscale
+    types: deb
+    uris: https://pkgs.tailscale.com/stable/debian
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components: main
+    signed_by: /etc/apt/keyrings/tailscale.asc
+    state: present
+  become: true
+
+- name: Update repositories
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+
+- name: Install tailscale package
+  ansible.builtin.apt:
+    pkg: tailscale
+    state: '{{ ansible_settings.package_state }}'
+  become: true
+
+- name: Enable and start tailscale service
+  ansible.builtin.systemd:
+    name: tailscaled
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true

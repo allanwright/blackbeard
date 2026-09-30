@@ -15,6 +15,7 @@ email_alerts:
 
 task_switches:
   install_docker: true
+  install_tailscale: true
   install_packages: true
   configure_storage: true
   configure_iam: true

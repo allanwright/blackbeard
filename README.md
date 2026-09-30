@@ -20,6 +20,7 @@ The purpose of this repository is to provide automation of the configuration of 
 * [Mergerfs](https://github.com/trapexit/mergerfs)
 * [Snapraid](https://www.snapraid.it/)
 * [Docker](https://www.docker.com/)
+* [Tailscale](https://tailscale.com/)
 * [Glances](https://github.com/nicolargo/glances)
 * [Powertop](https://github.com/fenrus75/powertop)
 * [Homepage](https://gethomepage.dev/)

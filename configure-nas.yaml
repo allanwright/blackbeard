@@ -19,6 +19,10 @@
       ansible.builtin.include_tasks: tasks/install-docker.yaml
       when: task_switches.install_docker
 
+    - name: Install tailscale
+      ansible.builtin.include_tasks: tasks/install-tailscale.yaml
+      when: task_switches.install_tailscale
+
     - name: Install packages
       ansible.builtin.include_tasks: tasks/install-packages.yaml
       when: task_switches.install_packages
