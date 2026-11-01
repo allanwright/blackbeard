@@ -30,6 +30,7 @@
   community.docker.docker_compose_v2:
     project_src: /opt/docker/{{ item }}
     pull: missing
+    remove_orphans: true
     state: present
   become: true
   loop: '{{ discovered_containers }}'
@@ -39,6 +40,7 @@
   community.docker.docker_compose_v2:
     project_src: /opt/docker/{{ item }}
     pull: always
+    remove_orphans: true
     state: present
   become: true
   loop: '{{ discovered_containers }}'

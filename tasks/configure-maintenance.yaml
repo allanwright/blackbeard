@@ -33,16 +33,31 @@
     job: '/opt/scripts/maintenance.sh > /opt/scripts/maintenance.log 2>&1 | ts'
   become: true
 
-- name: Set AWS access key id environment variable
-  ansible.builtin.lineinfile:
-    path: /etc/environment
-    regexp: '^AWS_ACCESS_KEY_ID='
-    line: 'AWS_ACCESS_KEY_ID={{ software.backup.aws_access_key_id }}'
+- name: Create rclone directory
+  ansible.builtin.file:
+    path: '/opt/rclone'
+    state: directory
+    mode: '0700'
+    owner: 'root'
+    group: 'root'
   become: true
 
-- name: Set AWS secret access key environment variable
+- name: Create rclone configuration
+  ansible.builtin.template:
+    src: 'config/templates/rclone.conf.j2'
+    dest: '/opt/rclone/rclone.conf'
+    mode: '0600'
+    owner: 'root'
+    group: 'root'
+  become: true
+  no_log: true
+
+- name: Remove legacy AWS credentials from environment
   ansible.builtin.lineinfile:
     path: /etc/environment
-    regexp: '^AWS_SECRET_ACCESS_KEY='
-    line: 'AWS_SECRET_ACCESS_KEY={{ software.backup.aws_secret_access_key }}'
+    regexp: '^{{ item }}='
+    state: absent
   become: true
+  loop:
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
